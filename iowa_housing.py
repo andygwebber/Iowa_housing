@@ -219,10 +219,6 @@ plt.show()
 #Deleting outliers
 train = train.drop(train[(train['GrLivArea']>4000) & (train['SalePrice']<300000)].index)
 
-data = Data(train, test, categorical_features, ordinal_features, numerical_features)
-train.drop("Id", axis = 1, inplace = True)
-test.drop("Id", axis = 1, inplace = True)
-
 #And plot again to confirm outliers are gone
 fig = plt.figure()
 plt.plot(train['MSSubClass'],train['SalePrice'],"o")
@@ -252,9 +248,14 @@ plt.show()
 #same impact on score as expensive houses so I will calculate it and fit it.
 #I will use techniques to predict log of saleprice but then take exponent and
 #report actual saleprice.
+#This log is taken when class is formed
+
+data = Data(train, test, categorical_features, ordinal_features, numerical_features)
+data.massage()  
+data.adjust_skew()
 
 sns.distplot(data.y , fit=stats.norm);
-(mu, sigma) = stats.norm.fit(data.y)
+(mu, sigma) = stats.norm.fit(train['SalePrice'])
 #replot the distribution
 plt.legend(['Normal dist. ($\mu=$ {:.2f} and $\sigma=$ {:.2f} )'.format(mu, sigma)],
             loc='best')
@@ -270,16 +271,6 @@ plt.show()
 corrmat = train.corr()
 plt.subplots(figsize=(12,9))
 sns.heatmap(corrmat, vmax=0.9, square=True)
-
-data.massage()  
-
-data.adjust_skew()
-data_sub = data.compose_sub(categorical_features, ordinal_features, numerical_features)
-#data.all_data = pd.get_dummies(data.all_data)
-
-
-train = data_sub[:data.ntrain]
-test = data_sub[data.ntrain:]
 
 from sklearn import linear_model
 from sklearn import model_selection
